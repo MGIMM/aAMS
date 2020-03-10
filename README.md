@@ -26,6 +26,32 @@ from aAMS import aAMS
 from time import time
 from tqdm import tqdm
 import numpy as np
+
+
+
+# Naive Monte Carlo
+
+N_test = 100000
+list_mc = []
+for i in tqdm(range(1000)):
+    list_mc += [naive_MC(N = np.intc(N_test),
+                         x_init = -0.75,
+                         y_init = 0.0,
+                         beta = 4.1,
+                         dt = 0.01)]
+print("estimation of rare event:", np.mean(list_mc))
+print("naive asymptotic variance estimator:", N_test*np.var(list_mc))
+
+### output:
+# 100%|██████████| 1000/1000 [01:00<00:00, 16.43it/s]
+# 
+# estimation of rare event: 2.9700000000000004e-05
+# naive asymptotic variance estimator: 3.0891e-05
+
+
+
+# Adaptive Multilevel Splitting
+
 t0=time()
 m,v = aAMS(x_init = -0.75,
      y_init = 0.0,
@@ -46,7 +72,7 @@ print(time()-t0,"seconds used.")
 # 0.8391783237457275 seconds used.
 
 
-# compare with naive variance estimator
+# Comparison with naive variance estimator
 
 N_test = 5000
 K_test = 1
