@@ -2,6 +2,8 @@
 
 Asymmetric SMC version of Adaptive Multilevel Splitting with efficient variance estimator implemented in `Cython`.
 
+<img src="fig/ams.png" height="500" />
+
 
 ## Installation
 
@@ -154,6 +156,59 @@ print("ideal variance for gAMS:",-np.log(np.mean(list_gams))*np.mean(list_gams)*
 
 ```
 
+## Plot
+
+```python
+from aAMS import aAMS, naive_MC
+import matplotlib.pyplot as plt   
+import numpy as np
+from tqdm import tqdm
+
+# calculate reference value by naive MC
+N_test = 100000
+list_mc = []
+for i in tqdm(range(5000)):
+    list_mc += [naive_MC(N = np.intc(N_test),
+                         x_init = -0.75,
+                         y_init = 0.0,
+                         beta = 4.1,
+                         dt = 0.01)]
+nmc = np.mean(list_mc)
+
+# viz
+_N_list = [500,2500, 5000, 10000,15000, 20000, 25000, 30000, 40000, 50000]
+m = np.zeros(len(_N_list))
+d = np.zeros(len(_N_list))
+for i in tqdm(range(len(_N_list))):
+    m[i],d[i] = aAMS(x_init = -0.75,
+                     y_init = 0.0,
+                     beta = 4.1,
+                     dt = 0.01,
+                     level_star = 1.75,
+                     N = _N_list[i],       
+                     K = 1,
+                     iota=0.01,
+                     n_max = 1000000
+                     ) 
+
+plt.figure(figsize = (12,7))
+#plt.errorbar(_N_list, m, yerr=np.sqrt(d/_N_list), color = "black")
+plt.errorbar(_N_list, m, yerr=1.96*np.sqrt(d/_N_list),fmt='+',ecolor='darkred',color='darkblue',elinewidth=1,capsize=3, label="AMS with 95% CI")
+plt.axhline(y=nmc, color='darkgreen',lw = 1, linestyle='dashed', label='Naive MC')
+#plt.grid(linestyle = 'dotted', color = "grey")
+for i in range(len(_N_list)):
+    plt.axvline(_N_list[i], linestyle='dotted', color='grey',lw=1) 
+    #plt.axhline( m[i]+1.96*np.sqrt(d/_N_list)[i], linestyle='dotted', color='grey',lw=1) 
+    #plt.axhline( m[i]-1.96*np.sqrt(d/_N_list)[i], linestyle='dotted', color='grey',lw=1) 
+for i in range(5):
+    plt.axhline( i*10e-6, linestyle='dotted', color='grey',lw=1) 
+plt.ylabel("Estimation of rare-event probability")
+plt.xlabel("Particle numbers")
+plt.xticks(_N_list)
+plt.legend()
+plt.show()
+#plt.savefig("./ams.png")
+```
 ## Remarks
 
 * The purpose of this package is to provide a well optimized implementation of
