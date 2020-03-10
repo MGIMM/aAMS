@@ -2,6 +2,7 @@
 
 Asymmetric SMC version of Adaptive Multilevel Splitting with efficient variance estimator implemented in `Cython`.
 
+
 ## Installation
 
 Clone the git repository:
@@ -98,7 +99,7 @@ print("VoV:", np.var(list_var))
 print("ideal variance for gAMS:",-np.log(np.mean(list_gams))*np.mean(list_gams)**2)
 
 ### output:
-# 100%|██████████████████████████████████████████████████████████████████| 500/500 [03:23<00:00,  2.45it/s]
+# 100%|██████████| 500/500 [03:23<00:00,  2.45it/s]
 # estimation of rare event: 2.9022656130470198e-05
 # naive asymptotic variance estimator: 3.9672002621255104e-08
 # mean asymptotic variance estimator: 3.8650810422399494e-08
@@ -111,15 +112,16 @@ print("ideal variance for gAMS:",-np.log(np.mean(list_gams))*np.mean(list_gams)*
 ## Remarks
 
 * The purpose of this package is to provide a well optimized implementation of
-  gAMS algorithm based on Asymmetric SMC framework that **can run on a personal laptop to do the experiments**, which mainly contributes to the numerical part of my PHD thesis. 
+  gAMS algorithm based on Asymmetric SMC framework that **can run on a personal laptop**, which mainly contributes to the numerical part of my PHD thesis. 
 
 * Since the computation of
   the variance estimator is highly non-trivial, a readable code can be found in `./aAMS/aAMS.pyx`.
 
-* Current version is optimized to the 2-dimensional setting. The generalization
-  to the high-dimensional setting is straightforward. The computational costs
-  are linear w.r.t. the underlying dimension of the Markov process. Contact me
-  if you have any question.
+* Currently, the code is based on the overdamped Langevin dynamic with a
+  three-hole potential. The generalization to the general Markov dynamic in a
+  high-dimensional setting is straightforward. The computational costs are linear
+  w.r.t. the underlying dimension of the Markov process. Contact me if you have
+  any question.
 
 
 
