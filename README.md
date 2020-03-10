@@ -64,6 +64,51 @@ m,v = aAMS(x_init = -0.75,
      iota=0.1,
      n_max = 100000
      )
+"""
+Attributes
+----------
+    x_init: double
+        x-coordinate of the initial point.
+    y_init: double
+        y-coordinate of the initial point.
+    beta: double
+        Inverse temperature of the associated overdamped Langevin dynamic.
+    dt: double
+        Time step of the discretization.
+    K: (C: np.intc) (py:int)
+        Minimum Number of particles to be killed at each iteration.
+        Theoretical guarantee is availble when K = 1. In fact, this is the only case where the efficient 
+        variance estimator is availble.
+    N: (C: long) (py: int)
+        Number of particles at each iteration.
+    n_max: (C: long) (py: int)
+        Upper bound of the number of levels. This is introduced to control the memory allocation. There is no loss of memory 
+        efficiency when iota is not set to be 0, since an adaptive procedure of memory allocation will be conducted in order to
+        match the number of levels introduced by iota.
+    iota: double
+        Artificial step size of reaction coordinate. When iota is non-zero, the gAMS enters into Asymmetric SMC framework.
+        The asymptotic variance is therefore available as a by-product of the simulation of IPS.
+    
+Return 
+------
+double: the estimation of probability.
+double: the estimation of asympotic variance.
+
+Remarks
+-------
+Notice that the asymptotic variance estimator is biased!
+The (stochastic) bias is of order O_p(1/N). Hence, when N is small, one may encounter the case where the estimation of the
+asymptotic variance is negative! This is totally normal, which indicates that the number of particles N is too low for the current
+problem. 
+When iota is set to be small, it is also possible to encounter some "bias" in the varianc estimation. The essential problem is that
+the consistency of thte variance estimator is guaranteed in the sense that the number of levels is finite, i.e. not too big w.r.t. the
+number of particles N. Hence, it is encouraged to use relatively larger iota in order to ensure that the number of levels is not too big
+(or even bigger than N). This costs a slightly larger asymptotic variance. 
+In fact, the problem mentioned above can be solved by using the unbiased variance estimator, which is also consistent w.r.t. N. However, 
+that variance estimator is not efficient. More precisely, the time complexity is O(N*N*n). Therefore, it is not implemented in the current 
+version of gAMS.
+"""
+
 print("mean:",m,"\nvar:",v)
 print(time()-t0,"seconds used.")
 
