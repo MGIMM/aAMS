@@ -108,8 +108,6 @@ print("ideal variance for gAMS:",-np.log(np.mean(list_gams))*np.mean(list_gams)*
 
 ```
 
-A generic example with visulization is provided in `./test/test.py`.
-
 ## Remarks
 
 * The purpose of this package is to provide a well optimized implementation of
