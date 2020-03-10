@@ -7,7 +7,7 @@ Asymmetric SMC version of Adaptive Multilevel Splitting with efficient variance 
 
 Clone the git repository:
 ```
-git clone https://github.com/MGIMM/Wasserstein-Random-Forests.git
+git clone https://github.com/MGIMM/aAMS.git
 ```
 Install with `pip`:
 
