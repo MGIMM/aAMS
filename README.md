@@ -23,7 +23,7 @@ pip install .
 
 
 ```python
-from aAMS import aAMS
+from aAMS import aAMS, naive_MC
 from time import time
 from tqdm import tqdm
 import numpy as np
