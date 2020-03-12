@@ -1,10 +1,14 @@
 from setuptools import setup
+#from distutils.core import setup
 from Cython.Build import cythonize
 from distutils.extension import Extension
+#import numpy as np
+
 
 sourcefiles = ['./aAMS/aAMS.pyx']
 
 extensions = [Extension("aAMS", sourcefiles)]
+
 
 setup(
     ext_modules=cythonize(extensions),
@@ -17,8 +21,7 @@ setup(
     license='MIT',
     packages=['aAMS'],
     install_requires=[
-           'tqdm',
-           'cython'
+           'tqdm'
            #'joblib',
            #'seaborn'
        ],
