@@ -64,7 +64,7 @@ cdef inline double _M_adaptive(double dt,
                                vector[double] &particle_y,
                                vector[double] &_list_level,
                                double iota = 0.1,
-                               double rho = 0.05,
+                               double rho = 0.2,
                                int max_iter = 1024) nogil: # tested
     
     """
@@ -110,7 +110,8 @@ cdef inline double _M_adaptive(double dt,
         
         if _level > max_level:
             max_level = _level
-        if (_x+1.0)*(_x+1.0) +_y*_y < rho*rho or (_x-1.0)*(_x-1.0) +_y*_y < rho*rho:
+        #if (_x-A_x)*(_x-A_x) +(_y-A_y)*(_y-A_y) < rho*rho or (_x-B_x)*(_x-B_x)+(_y-B_y)*(_y-B_y) < rho*rho:
+        if (_x+1.0)*(_x+1.0) +_y*_y < rho*rho or (_x-1.0)*(_x-1.0)+_y*_y < rho*rho:
             _not_in_AB = False
         else:
             _not_in_AB = True 
@@ -668,6 +669,14 @@ cdef inline double my_mean2(double[:] x) nogil:
 """
 ########## MODELS ##########
 # setting
+
+## metastable states
+# cdef double RHO = 0.2
+# cdef double A_x = -1.0
+# cdef double A_y = 0.0
+# cdef double B_x = 1.0
+# cdef double B_y = 0.0
+
 ## three-hole potential
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -776,9 +785,9 @@ cdef inline (double, double) _update_state(double _x,
 @cython.wraparound(False)
 cdef inline double naive_M(double dt,
                            double sqrt_inv_temp_dt,
-                           double x_init = -0.9,
+                           double x_init = -0.75,
                            double y_init = 0.0,
-                           double rho = 0.05) nogil:
+                           double rho = 0.2) nogil:
     """
     last step of gAMS.
     """
@@ -795,7 +804,8 @@ cdef inline double naive_M(double dt,
     while _not_in_AB and _iter <100000:
         _iter += 1
         _x,_y = _update_state(_x,_y,dt, sqrt_inv_temp_dt)
-        if (_x+1.0)*(_x+1.0) +_y*_y < rho*rho or (_x-1.0)*(_x-1.0) +_y*_y < rho*rho:
+        #if (_x-A_x)*(_x-A_x) +(_y-A_y)*(_y-A_y) < rho*rho or (_x-B_x)*(_x-B_x)+(_y-B_y)*(_y-B_y) < rho*rho:
+        if (_x+1.0)*(_x+1.0) +_y*_y < rho*rho or (_x-1.0)*(_x-1.0)+_y*_y < rho*rho:
             _not_in_AB = False
         else:
             _not_in_AB = True 

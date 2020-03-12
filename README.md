@@ -165,14 +165,14 @@ import numpy as np
 from tqdm import tqdm
 
 # calculate reference value by naive MC
-N_test = 100000
+N_test = 1000
 list_mc = []
-for i in tqdm(range(5000)):
+for i in tqdm(range(50000)):
     list_mc += [naive_MC(N = np.intc(N_test),
                          x_init = -0.75,
                          y_init = 0.0,
                          beta = 4.1,
-                         dt = 0.01)]
+                         dt = 0.05)]
 nmc = np.mean(list_mc)
 
 # viz
@@ -183,11 +183,11 @@ for i in tqdm(range(len(_N_list))):
     m[i],d[i] = aAMS(x_init = -0.75,
                      y_init = 0.0,
                      beta = 4.1,
-                     dt = 0.01,
+                     dt = 0.05,
                      level_star = 1.75,
                      N = _N_list[i],       
                      K = 1,
-                     iota=0.01,
+                     iota=0.05,
                      n_max = 1000000
                      ) 
 
