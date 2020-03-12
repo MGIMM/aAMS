@@ -659,7 +659,6 @@ cdef inline double my_mean2(double[:] x) nogil:
 
 
 
-
 """
  __  __    ___    ____    _____   _       ____  
 |  \/  |  / _ \  |  _ \  | ____| | |     / ___| 
