@@ -206,16 +206,16 @@ cdef inline void lazy_Mutation_adaptive(double target_level,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cdef inline (double,double) _gAMS_adaptive(double x_init,
-                                           double y_init,
-                                           double beta,
-                                           double dt,
-                                           double level_star,
-                                           int K,
-                                           long N,
-                                           long n_max = 100,
-                                           double iota = 0.1
-                                           ):
+cdef inline (double,double) _gAMS_asymptotic(double x_init,
+                                             double y_init,
+                                             double beta,
+                                             double dt,
+                                             double level_star,
+                                             int K,
+                                             long N,
+                                             long n_max = 100,
+                                             double iota = 0.1
+                                             ):
     """
     C-version of gAMS algo. The full description can be found in python wrapper.
     """
@@ -434,75 +434,345 @@ cdef inline (double,double) _gAMS_adaptive(double x_init,
         
         # Variance Estimation
         
-        ## calculate V_ddagger
-        Normalizer = 1.0
-        NUM1 = 1.0
-        for p in range(T):
-            MeanG.push_back(my_mean(G_mat[p,:]))
-            MeanG2.push_back(my_mean2(G_mat[p,:]))
-            Normalizer *= MeanG.back()
-            #Normalizer *= MeanG[p]
-        NUM1 = pow_C(N_double/(N_double-1.0), num_level)
-        
-        SumG = 0.0
-        for i in range(N):
-            ArrayEve[EVE[T,i]] += _f[i]*Normalizer
-            SumG += _f[i]*Normalizer
-            
-        SumEve = 0.0
-        for i in range(N):
-            SumEve += ArrayEve[i]*ArrayEve[i]
-            
-        V_ddagger = p_hat*p_hat-(SumG*SumG - SumEve)*NUM1/(N_double*N_double)
-        V_ddagger *= N_double
-    
-    
-        for i in range(N):
-            CurrentIndex = i
+        if p_hat != 0.0:
+            ## calculate V_ddagger
+            Normalizer = 1.0
+            NUM1 = 1.0
             for p in range(T):
-                ParentIndex =  GENE[T-p-1,CurrentIndex]
-                Theta[T-p-1,i] = ParentIndex
-                CurrentIndex = ParentIndex
-        
-        #Normalizer = 1.0
-        #for p in range(num_level):
-        #    Normalizer *= float(N)/float(N-1)
-        Normalizer *= sqrt(NUM1)
-        #Normarlizer = sqrt(Normalizer)
-        # for p in range(T):
-        #     Normalizer *= MeanG[p]
-        
-        ## calculate tilde_V_dagger
-        tilde_V_dagger = 0.0
-        for p in range(T):
+                MeanG.push_back(my_mean(G_mat[p,:]))
+                MeanG2.push_back(my_mean2(G_mat[p,:]))
+                Normalizer *= MeanG.back()
+                #Normalizer *= MeanG[p]
+            NUM1 = pow_C(N_double/(N_double-1.0), num_level)
+            
+            SumG = 0.0
             for i in range(N):
-                Index = Theta[p,i]
-                IndexPrime = Theta[p+1,i]
-                F = _f[i]*Normalizer/MeanG[p]
-                MatrixEve[i] = G_mat[p,IndexPrime] * sqrt(MeanG2[p]) * F
-            for i in range(N):
-                SumMatrixEve[EVE[T,i]] += MatrixEve[i]
+                ArrayEve[EVE[T,i]] += _f[i]*Normalizer
+                SumG += _f[i]*Normalizer
                 
             SumEve = 0.0
             for i in range(N):
-                SumEve += SumMatrixEve[i]*SumMatrixEve[i]
-            for i in range(N-1):
-                MatrixEve[0] += MatrixEve[i+1]
-            SumCurrent = MatrixEve[0]*MatrixEve[0] - SumEve
-            tilde_V_dagger += SumCurrent/(N_double*N_double)
+                SumEve += ArrayEve[i]*ArrayEve[i]
+                
+            V_ddagger = p_hat*p_hat-(SumG*SumG - SumEve)*NUM1/(N_double*N_double)
+            V_ddagger *= N_double
+    
+    
             for i in range(N):
-                SumMatrixEve[i] = 0.0
-                MatrixEve[i] = 0.0
-        
-        
-        
+                CurrentIndex = i
+                for p in range(T):
+                    ParentIndex =  GENE[T-p-1,CurrentIndex]
+                    Theta[T-p-1,i] = ParentIndex
+                    CurrentIndex = ParentIndex
+            
+            #Normalizer = 1.0
+            #for p in range(num_level):
+            #    Normalizer *= float(N)/float(N-1)
+            Normalizer *= sqrt(NUM1)
+            #Normarlizer = sqrt(Normalizer)
+            # for p in range(T):
+            #     Normalizer *= MeanG[p]
+            
+            ## calculate tilde_V_dagger
+            tilde_V_dagger = 0.0
+            for p in range(T):
+                for i in range(N):
+                    Index = Theta[p,i]
+                    IndexPrime = Theta[p+1,i]
+                    F = _f[i]*Normalizer/MeanG[p]
+                    MatrixEve[i] = G_mat[p,IndexPrime] * sqrt(MeanG2[p]) * F
+                for i in range(N):
+                    SumMatrixEve[EVE[T,i]] += MatrixEve[i]
+                    
+                SumEve = 0.0
+                for i in range(N):
+                    SumEve += SumMatrixEve[i]*SumMatrixEve[i]
+                for i in range(N-1):
+                    MatrixEve[0] += MatrixEve[i+1]
+                SumCurrent = MatrixEve[0]*MatrixEve[0] - SumEve
+                tilde_V_dagger += SumCurrent/(N_double*N_double)
+                for i in range(N):
+                    SumMatrixEve[i] = 0.0
+                    MatrixEve[i] = 0.0
+            
+            
+            
     
-        return p_hat, V_ddagger+tilde_V_dagger
+            return p_hat, V_ddagger+tilde_V_dagger
+        else:
+            return p_hat,0.0
 
 
 
     
+ 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef inline (double,double) _gAMS_non_asymptotic(double x_init,
+                                                 double y_init,
+                                                 double beta,
+                                                 double dt,
+                                                 double level_star,
+                                                 int K,
+                                                 long N,
+                                                 long n_max = 100,
+                                                 double iota = 0.1
+                                                 ):
+    """
+    C-version of gAMS algo. The full description can be found in python wrapper.
+    """
+    # initialization:
+    cdef long i
+    cdef double N_double = N
+    #cdef double[:,:,:] IPS = np.zeros((n_max+1,N,2))
+    #cdef double[:,:] SH = np.zeros((n,N))
+    
+    
+    
+    
+    cdef vector[double] sorted_max_level
+    sorted_max_level.reserve(N)
+    
+    cdef double current_level
+    cdef double _level
+    
+    cdef double sqrt_inv_temp_dt = sqrt(2.0*dt/beta)
+    cdef double p_hat = 1.0 
+    cdef int N_surviving = 0
+    cdef vector[int] I_surviving
+    I_surviving.reserve(N)
+    
+    # trace the levels sequence of each particle at each layer
+    cdef vector[vector[double]] list_level
+    list_level.reserve(N)
+    
+    cdef vector[double] level_init
+    level_init.reserve(1)
+    level_init.push_back(xi(x_init,y_init))
+    
+    cdef vector[double] list_max_level
+    list_max_level.reserve(N)
+    # particles at current layer, we do not trace the whole particle system, we only trace the associated potetial values in G_mat, which contains all the info of SH.
+    cdef vector[vector[double]] layer_x
+    cdef vector[vector[double]] layer_y
+    layer_x.reserve(N)
+    layer_y.reserve(N)
+    cdef int max_iter = 1024*2
+    cdef vector[double] vec_x_init,vec_y_init
+    vec_x_init.reserve(max_iter)
+    vec_y_init.reserve(max_iter)
+    vec_x_init.push_back(x_init)
+    vec_y_init.push_back(y_init)
+    
+    # optimize memory allocation for EVE, GENE and G_mat
+    cdef long num_level = n_max
+    if iota != 0.0:
+        num_level = int(ceil((level_star - level_init.front())/iota))
+    cdef long _n_max = n_max
+    if  num_level <= n_max:
+        _n_max = num_level + 1 
         
+    cdef long[:,:] EVE = np.zeros((_n_max+1,N), dtype = int)
+    cdef long[:,:] GENE = np.zeros((_n_max+1,N), dtype = int)
+    cdef double[:,:] G_mat = np.zeros((_n_max+1,N))
+    cdef long[:,:] Theta = np.zeros((_n_max+1,N),dtype = int)
+    
+    cdef long T = 0
+    cdef long ParentIndex 
+    #cdef double U
+    cdef double SumG = 0.0
+    
+    
+    # Variance Estimation
+    # for var estimation
+    cdef vector[double] MeanG, MeanG2, MeanGdot2
+    MeanG.reserve(N)
+    MeanG2.reserve(N)
+    MeanGdot2.reserve(N)
+    cdef double ProdCouple
+    cdef long p
+    cdef long Index1,Index2,ParentIndex1,ParentIndex2
+    cdef double NUM1 = 1.0
+    cdef long j
+    
+    # last layer
+    cdef vector[double] _f
+    _f.reserve(N)
+    
+    cdef double V_nothing = 0.0
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # iteration:
+    with nogil:
+        # initilization of layer (i.e. N particles) and list of levels at current layer.
+        for i in range(N):
+            layer_x.push_back(vec_x_init)
+            layer_y.push_back(vec_y_init)
+            list_level.push_back(level_init)
+        
+        for i in range(N):
+            _level = Mutation_adaptive(target_level = -100000.0,
+                                       dt = dt,
+                                       sqrt_inv_temp_dt = sqrt_inv_temp_dt,
+                                       particle_x = layer_x[i],
+                                       particle_y = layer_y[i],
+                                       _list_level = list_level[i]
+                                       )
+            list_max_level.push_back(_level)
+            sorted_max_level.push_back(_level)
+            EVE[0,i] = i
+        # level calculations
+        sort(sorted_max_level.begin(),sorted_max_level.end())
+        current_level = sorted_max_level[K-1]
+        sorted_max_level.clear()
+        # survival test
+        for i in range(N):
+            if list_max_level[i] > current_level:
+                #G_mat[0,i] = 1.0
+                #I_surviving.clear()
+                I_surviving.push_back(i)
+                N_surviving += 1 
+            # else:
+            #     G_mat[0,i] = 0.0
+                
+        # iteration:    
+        while current_level < level_star and N_surviving > 0 and T < _n_max:
+            SumG = 0.0 
+            for i in range(N):
+                if list_max_level[i]>current_level:
+                    G_mat[T,i] = 1.0
+                    SumG += 1.0 
+                    
+                    # mutation
+                    ParentIndex = i
+                    lazy_Mutation_adaptive(target_level = current_level,
+                                           dt = dt,
+                                           sqrt_inv_temp_dt = sqrt_inv_temp_dt,
+                                           particle_x = layer_x[i],
+                                           particle_y = layer_y[i],
+                                           _list_level = list_level[i]
+                                           )
+                else:
+                    #G_mat[T,i] = 0.0
+                    ParentIndex = I_surviving[rucat(N_surviving)]
+                    
+                    # cloning
+                    #layer_x[i].clear()
+                    #layer_y[i].clear()
+                    #list_level[i].clear()
+                    
+                    layer_x[i] = layer_x[ParentIndex]
+                    layer_y[i] = layer_y[ParentIndex]
+                    list_level[i] = list_level[ParentIndex]
+                    
+                    # mutation
+                    _level = Mutation_adaptive(target_level = current_level,
+                                               dt = dt,
+                                               sqrt_inv_temp_dt = sqrt_inv_temp_dt,
+                                               particle_x = layer_x[i],
+                                               particle_y = layer_y[i],
+                                               _list_level = list_level[i],
+                                               iota = iota
+                                               )
+                    list_max_level[i] = _level
+                    
+                
+                # tracing genealogy and survival history (in G_mat)
+                EVE[T+1,i] = EVE[T,ParentIndex] 
+                GENE[T,i] = ParentIndex
+            
+            #level calculations
+            sorted_max_level = list_max_level
+            sort(sorted_max_level.begin(),sorted_max_level.end())
+            current_level = sorted_max_level[K-1]
+            sorted_max_level.clear()
+            
+            # update
+            I_surviving.clear()
+            N_surviving = 0
+            
+            p_hat *= SumG/N_double            
+            for i in range(N):
+                if list_max_level[i] > current_level:
+                    #G_mat[T+1,i] = 1.0
+                    I_surviving.push_back(i)
+                    N_surviving += 1
+                #else:
+                #    G_mat[T+1,i] = 0.0
+                
+            T += 1
+        
+        
+        # last level
+        if current_level >= level_star:
+            SumG = 0.0
+            for i in range(N):
+                _f.push_back(naive_M(dt = dt,
+                                     sqrt_inv_temp_dt = sqrt_inv_temp_dt,
+                                     x_init = layer_x[i].front(),
+                                     y_init = layer_y[i].front())) 
+                SumG += _f.back()
+            p_hat *= SumG/N_double
+        else:
+            p_hat = 0.0
+            
+            
+            
+        
+        
+
+        if p_hat != 0.0:
+            NUM1 = N_double/(N_double-1.0)
+            for p in range(T):
+                MeanG.push_back(my_mean(G_mat[p,:]))
+                MeanG2.push_back(my_mean2(G_mat[p,:]))
+                MeanGdot2.push_back((MeanG[p]*MeanG[p] - MeanG2[p]/N_double)*NUM1)
+                #Normalizer *= MeanG[p]
+            # # construct Theta
+            # for i in range(N):
+            #     CurrentIndex = i
+            #     for p in range(T):
+            #         ParentIndex =  GENE[T-p-1,CurrentIndex]
+            #         Theta[T-p-1,i] = ParentIndex
+            #         CurrentIndex = ParentIndex
+            
+            for i in range(N-1):
+                for j in range(N-i-1): # real index: j+i+1
+                    Index1 = i
+                    Index2 = i+j+1
+                    if EVE[T,Index1] != EVE[T,Index2]:
+                        ProdCouple = _f[Index1]*_f[Index2]
+                        for p in range(T):
+                            ParentIndex1 = GENE[T-p-1,Index1]
+                            ParentIndex2 = GENE[T-p-1,Index2]
+                            if G_mat[T-p-1,Index1] == 1.0 and G_mat[T-p-1,Index2] == 1.0:
+                                ProdCouple *= MeanGdot2[T-p-1]
+                            else:
+                                ProdCouple *= MeanG[T-p-1]*MeanG[T-p-1]*NUM1
+                            Index1 = ParentIndex1
+                            Index2 = ParentIndex2
+
+                        V_nothing += ProdCouple 
+            V_nothing *= 2.0
+            V_nothing /= (N_double-1.0)*N_double
+
+
+            
+            
+            
+            
+            return p_hat, p_hat*p_hat - V_nothing
+        else:
+            return p_hat, 0.0
     
     
 # python wrapper
@@ -514,7 +784,8 @@ def aAMS(x_init,
          K,
          N,
          n_max = 100,
-         iota = 0.1
+         iota = 0.1,
+         var_estimation = "asymptotic"
          ):
     """
     gAMS implementation based on Asymmetric SMC with efficient asymptotic variance estimation.
@@ -542,6 +813,10 @@ def aAMS(x_init,
         iota: double
             Artificial step size of reaction coordinate. When iota is non-zero, the gAMS enters into Asymmetric SMC framework.
             The asymptotic variance is therefore available as a by-product of the simulation of IPS.
+        var_estimation: "asymptotic" or "non-asymptotic"
+            Whether the efficient (biased) asymptotic variance estimator or the
+            non-asymptotic (unbiased but not efficient) variance estimator
+            should be implemented. The time complexity are respectively O(TN) and O(TN^2).
         
     Return 
     ------
@@ -550,29 +825,50 @@ def aAMS(x_init,
     
     Remarks
     -------
-    Notice that the asymptotic variance estimator is biased!
-    The (stochastic) bias is of order O_p(1/N). Hence, when N is small, one may encounter the case where the estimation of the
-    asymptotic variance is negative! This is totally normal, which indicates that the number of particles N is too low for the current
-    problem. 
-    When iota is set to be small, it is also possible to encounter some "bias" in the varianc estimation. The essential problem is that
-    the consistency of thte variance estimator is guaranteed in the sense that the number of levels is finite, i.e. not too big w.r.t. the
-    number of particles N. Hence, it is encouraged to use relatively larger iota in order to ensure that the number of levels is not too big
-    (or even bigger than N). This costs a slightly larger asymptotic variance. 
-    In fact, the problem mentioned above can be solved by using the unbiased variance estimator, which is also consistent w.r.t. N. However, 
-    that variance estimator is not efficient. More precisely, the time complexity is O(N*N*n). Therefore, it is not implemented in the current 
-    version of gAMS.
+    Notice that the asymptotic variance estimator is biased!  The (stochastic)
+    bias is of order O_p(1/N). Hence, when N is small, one may encounter the
+    case where the estimation of the asymptotic variance is completely
+    irrelevant! This indicates that the number of particles N is too low for
+    the current problem. In this case, one should use non-asymptotic variance
+    estimator.  However, when N is larger (typically larger than 500), it is
+    expected that the difference between non-asymptotic variance estimator
+    (multiplied by N) and asymptotic variance estimator is very small.
+    Therefore, we recomment to use the asymptotic variance estimator, which is
+    more efficient by design.  When iota is set to be small, it is also
+    possible to encounter some "bias" in the varianc estimation. The essential
+    problem is that the consistency of thte variance estimator is guaranteed in
+    the sense that the number of levels is finite, i.e. not too big w.r.t. the
+    number of particles N. Hence, it is encouraged to use relatively larger
+    iota in order to ensure that the number of levels is not too big (or even
+    bigger than N). This costs a slightly larger asymptotic variance.  However,
+    there will be no problem for non-asymptotic variance estimator, even for
+    the choice iota = 0. In fact, the unbiasedness is trivial by replacing the
+    martigale structure by local martigale structure (cf. du 2019, aSMC). 
     """
-    return _gAMS_adaptive(x_init,
-                          y_init,
-                          beta,
-                          dt,
-                          level_star,
-                          np.intc(K),
-                          int(N),
-                          int(n_max),
-                          iota
-                          )
-    
+    if var_estimation == "asymptotic":
+        return _gAMS_asymptotic(x_init,
+                                y_init,
+                                beta,
+                                dt,
+                                level_star,
+                                np.intc(K),
+                                int(N),
+                                int(n_max),
+                                iota
+                                )
+        
+    elif var_estimation == "non-asymptotic":
+        return _gAMS_non_asymptotic(x_init,
+                                    y_init,
+                                    beta,
+                                    dt,
+                                    level_star,
+                                    np.intc(K),
+                                    int(N),
+                                    int(n_max),
+                                    iota
+                                    )
+
 
 """
  _   _   _____   ___   _       ____  

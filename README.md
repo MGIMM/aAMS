@@ -57,16 +57,19 @@ print("naive asymptotic variance estimator:", N_test*np.var(list_mc))
 
 t0=time()
 m,v = aAMS(x_init = -0.75,
-     y_init = 0.0,
-     beta = 4.1,
-     dt = 0.01,
-     level_star = 1.75,
-     N = 10000,       
-     K = 1,
-     iota=0.1,
-     n_max = 100000
-     )
+           y_init = 0.0,
+           beta = 4.1,
+           dt = 0.01,
+           level_star = 1.75,
+           N = 10000,       
+           K = 1,
+           iota=0.1,
+           n_max = 100000
+           ) 
+
 """
+gAMS implementation based on Asymmetric SMC with efficient asymptotic variance estimation.
+
 Attributes
 ----------
     x_init: double
@@ -90,6 +93,10 @@ Attributes
     iota: double
         Artificial step size of reaction coordinate. When iota is non-zero, the gAMS enters into Asymmetric SMC framework.
         The asymptotic variance is therefore available as a by-product of the simulation of IPS.
+    var_estimation: "asymptotic" or "non-asymptotic"
+        Whether the efficient (biased) asymptotic variance estimator or the
+        non-asymptotic (unbiased but not efficient) variance estimator
+        should be implemented. The time complexity are respectively O(TN) and O(TN^2).
     
 Return 
 ------
@@ -98,19 +105,26 @@ double: the estimation of asympotic variance.
 
 Remarks
 -------
-Notice that the asymptotic variance estimator is biased!
-The (stochastic) bias is of order O_p(1/N). Hence, when N is small, one may encounter the case where the estimation of the
-asymptotic variance is negative! This is totally normal, which indicates that the number of particles N is too low for the current
-problem. 
-When iota is set to be small, it is also possible to encounter some "bias" in the varianc estimation. The essential problem is that
-the consistency of thte variance estimator is guaranteed in the sense that the number of levels is finite, i.e. not too big w.r.t. the
-number of particles N. Hence, it is encouraged to use relatively larger iota in order to ensure that the number of levels is not too big
-(or even bigger than N). This costs a slightly larger asymptotic variance. 
-In fact, the problem mentioned above can be solved by using the unbiased variance estimator, which is also consistent w.r.t. N. However, 
-that variance estimator is not efficient. More precisely, the time complexity is O(N*N*n). Therefore, it is not implemented in the current 
-version of gAMS.
+Notice that the asymptotic variance estimator is biased!  The (stochastic)
+bias is of order O_p(1/N). Hence, when N is small, one may encounter the
+case where the estimation of the asymptotic variance is completely
+irrelevant! This indicates that the number of particles N is too low for
+the current problem. In this case, one should use non-asymptotic variance
+estimator.  However, when N is larger (typically larger than 500), it is
+expected that the difference between non-asymptotic variance estimator
+(multiplied by N) and asymptotic variance estimator is very small.
+Therefore, we recomment to use the asymptotic variance estimator, which is
+more efficient by design.  When iota is set to be small, it is also
+possible to encounter some "bias" in the varianc estimation. The essential
+problem is that the consistency of thte variance estimator is guaranteed in
+the sense that the number of levels is finite, i.e. not too big w.r.t. the
+number of particles N. Hence, it is encouraged to use relatively larger
+iota in order to ensure that the number of levels is not too big (or even
+bigger than N). This costs a slightly larger asymptotic variance.  However,
+there will be no problem for non-asymptotic variance estimator, even for
+the choice iota = 0. In fact, the unbiasedness is trivial by replacing the
+martigale structure by local martigale structure (cf. du 2019, aSMC). 
 """
-
 print("mean:",m,"\nvar:",v)
 print(time()-t0,"seconds used.")
 
