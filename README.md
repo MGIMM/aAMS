@@ -6,6 +6,12 @@ Asymmetric SMC version of Adaptive Multilevel Splitting with efficient variance 
 
 ## Illustration of the performance of difference variance estimators
 
+* N = 10 (the size of iteracting particle system)
+<img src="fig/beta_4.1_N_10.png" height="500" />
+
+* N = 50 (the size of iteracting particle system)
+<img src="fig/beta_4.1_N_50.png" height="500" />
+
 * N = 200 (the size of iteracting particle system)
 <img src="fig/beta_4.1_N_200.png" height="500" />
 
@@ -234,7 +240,7 @@ plt.show()
 ## Remarks
 
 * The purpose of this package is to provide a well optimized implementation of
-  gAMS algorithm based on Asymmetric SMC framework that **can run on a personal laptop**, which mainly contributes to the numerical part of my PHD thesis. 
+  gAMS algorithm based on Asymmetric SMC framework that **can run on a personal laptop**, which mainly contributes to the numerical part of my PhD thesis. 
 
 * Since the computation of
   the variance estimator is highly non-trivial, a readable code can be found in `./aAMS/aAMS.pyx`.
