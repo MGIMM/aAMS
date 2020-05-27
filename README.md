@@ -7,10 +7,10 @@ Asymmetric SMC version of Adaptive Multilevel Splitting with efficient variance 
 ## Illustration of the performance of difference variance estimators
 
 * N = 200 (the size of iteracting particle system)
-<img src="fig/beta_4.1_N_200.pdf" height="500" />
+<img src="fig/beta_4.1_N_200.png" height="500" />
 
 * N = 500 (the size of iteracting particle system)
-<img src="fig/beta_4.1_N_500.pdf" height="500" />
+<img src="fig/beta_4.1_N_500.png" height="500" />
 
 
 ## Installation
